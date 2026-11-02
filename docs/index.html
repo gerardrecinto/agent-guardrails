@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>agent-guardrails</title>
+<meta name="description" content="A Claude Code hook that blocks terraform destroy, rm -rf ~, git push --force and secret reads, and tells the agent what to do instead.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%232f5fd0%27/%3E%3Cpath d=%27M9 16l5 5 9-10%27 stroke=%27white%27 stroke-width=%273%27 fill=%27none%27/%3E%3C/svg%3E">
+<meta property="og:title" content="agent-guardrails">
+<meta property="og:description" content="Stop your AI coding agent from running the one command you cannot undo.">
+<style>
+:root{--bg:#fff;--fg:#14171a;--mute:#566069;--card:#f4f6f8;--line:#d8dde2;--bad:#b3261e;--good:#17692f;--accent:#2f5fd0}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1115;--fg:#e8ebee;--mute:#9aa4ae;--card:#171b21;--line:#2a313a;--bad:#ff8a80;--good:#7fd69a;--accent:#8fb0ff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:860px;margin:0 auto;padding:40px 16px 64px}
+h1{font-size:clamp(2rem,6vw,3rem);line-height:1.1;margin:0 0 12px;letter-spacing:-.02em}
+h2{margin:48px 0 12px;font-size:1.4rem}
+p{margin:0 0 14px}
+.lead{font-size:1.15rem;color:var(--mute);max-width:60ch}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9rem}
+pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto;margin:0 0 14px}
+.demo img{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);display:block}
+.static{display:none}
+@media (prefers-reduced-motion:reduce){.demo img{display:none}.static{display:block}}
+.try{display:flex;gap:8px;flex-wrap:wrap}
+.try input{flex:1 1 260px;min-width:0;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;font-family:ui-monospace,Menlo,monospace}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+button{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;cursor:pointer}
+button:hover{border-color:var(--accent)}
+#result{margin-top:12px;padding:14px;border-radius:10px;border:1px solid var(--line);background:var(--card);min-height:5.5em}
+.bad{color:var(--bad);font-weight:600}.good{color:var(--good);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{white-space:nowrap}
+.wrap{overflow-x:auto}
+.note{color:var(--mute);font-size:.95rem}
+footer{margin-top:56px;color:var(--mute);font-size:.9rem}
+</style>
+</head>
+<body>
+<main>
+<h1>agent-guardrails</h1>
+<p class="lead">Your AI coding agent will eventually try <code>terraform destroy</code>. This hook stops it, and tells the agent what to do instead.</p>
+<p><a href="https://github.com/gerardrecinto/agent-guardrails">View on GitHub</a></p>
+
+<div class="demo" role="img" aria-label="Terminal recording. The agent tries terraform destroy, git push --force and cat .env, and each is blocked with a reason. Then terraform plan is allowed.">
+  <img src="assets/demo.gif" alt="" width="983" height="560">
+  <pre class="static">Agent runs: terraform destroy
+BLOCKED [terraform-destroy]: Destroys or changes infrastructure without a human reading the plan.
+Instead: Run terraform plan -out=tfplan, show the plan, and let a person run apply.
+
+Agent runs: terraform plan -out=tfplan
+allowed</pre>
+</div>
+
+<h2>Try it here</h2>
+<p class="note">This runs the same patterns as the hook, in your browser. Nothing is sent anywhere.</p>
+<form class="try" id="form" autocomplete="off">
+  <label for="cmd" hidden>Command to test</label>
+  <input id="cmd" value="terraform destroy" spellcheck="false">
+  <button type="submit">Check</button>
+</form>
+<div class="chips" id="chips"></div>
+<div id="result" aria-live="polite"></div>
+<noscript><p>JavaScript is off, so the live check is unavailable. The table below and the README list every rule.</p></noscript>
+
+<h2>Install in 30 seconds</h2>
+<pre>git clone https://github.com/gerardrecinto/agent-guardrails ~/.agent-guardrails
+cd ~/.agent-guardrails
+python3 -m guardrails check "terraform destroy"   # see it block, runs nothing
+python3 -m guardrails install                     # adds the hook to ~/.claude/settings.json</pre>
+<p>Needs Python 3.10 or newer and nothing else. The installer keeps a backup of your settings file. Run <code>/hooks</code> in Claude Code to confirm it is listed.</p>
+
+<h2>What it blocks</h2>
+<div class="wrap"><table id="rules"><thead><tr><th>Rule</th><th>Why</th><th>Instead</th></tr></thead><tbody></tbody></table></div>
+<p class="note">Allowed on purpose: <code>rm -rf node_modules</code>, <code>terraform plan</code>, <code>kubectl get</code>, <code>git push --force-with-lease</code>, <code>cat .env.example</code>.</p>
+
+<h2>What it does not do</h2>
+<p>It is a seatbelt, not a sandbox. It reads command text, so an agent that writes a script and runs that, or builds a command from variables, can get past it. Use real permissions and scoped credentials for hard limits. I have not yet run it inside a live Claude Code session beyond the hook protocol, and I have not tested Cursor or Codex.</p>
+
+<footer>MIT licensed. Made by <a href="https://github.com/gerardrecinto">Gerard Recinto</a>. Related: <a href="https://joltrinhq.com">Joltrin</a>, which checks that the steps before a risky action really happened.</footer>
+</main>
+<script>
+(function(){
+  var rules=[],chips=["terraform destroy","git push --force origin main","cat .env","kubectl delete ns payments","rm -rf ~","terraform plan -out=tfplan","git push --force-with-lease origin my-branch","rm -rf node_modules"];
+  var input=document.getElementById("cmd"),out=document.getElementById("result");
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+  function run(){
+    var c=input.value,hit=null;
+    for(var i=0;i<rules.length;i++){if(rules[i].re.test(c)){hit=rules[i];break}}
+    out.innerHTML=hit
+      ?'<span class="bad">BLOCKED</span> ['+esc(hit.id)+']<br>'+esc(hit.why)+'<br><b>Instead:</b> '+esc(hit.instead)
+      :'<span class="good">Allowed.</span> No rule matches this command.';
+  }
+  document.getElementById("form").addEventListener("submit",function(e){e.preventDefault();run()});
+  var box=document.getElementById("chips");
+  chips.forEach(function(t){var b=document.createElement("button");b.type="button";b.textContent=t;b.onclick=function(){input.value=t;run()};box.appendChild(b)});
+  fetch("rules.json").then(function(r){return r.json()}).then(function(d){
+    rules=d.rules.map(function(r){r.re=new RegExp(r.pattern,"i");return r});
+    var tb=document.querySelector("#rules tbody");
+    rules.forEach(function(r){var tr=document.createElement("tr");tr.innerHTML="<td><code>"+esc(r.id)+"</code></td><td>"+esc(r.why)+"</td><td>"+esc(r.instead)+"</td>";tb.appendChild(tr)});
+    run();
+  }).catch(function(){out.textContent="Could not load the rules. See the README for the full list."});
+})();
+</script>
+</body>
+</html>

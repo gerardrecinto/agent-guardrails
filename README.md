@@ -4,6 +4,15 @@ A Claude Code hook that stops the agent from running commands like `terraform de
 
 It is for anyone who lets an AI coding agent run shell commands on a real machine. Python 3.10+, no dependencies.
 
+[![ci](https://github.com/gerardrecinto/agent-guardrails/actions/workflows/ci.yml/badge.svg)](https://github.com/gerardrecinto/agent-guardrails/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/github/license/gerardrecinto/agent-guardrails)](LICENSE)
+
+[Live demo you can type into](https://gerardrecinto.github.io/agent-guardrails/)
+
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="Terminal recording. The agent tries terraform destroy, git push --force and cat .env, and each is blocked with a reason. Then terraform plan is allowed." width="760">
+</p>
+
 ## Try it in 30 seconds
 
 ```bash
@@ -23,7 +32,11 @@ A safe command such as `ls` exits 0 and prints nothing.
 
 ## Install
 
-Merge `examples/settings.json` into `~/.claude/settings.json` (all projects) or `.claude/settings.json` (one project). Then run `/hooks` in Claude Code to confirm it is listed.
+```bash
+python3 -m guardrails install
+```
+
+This adds the hook to `~/.claude/settings.json` and keeps a backup next to it. Use `--settings .claude/settings.json` for one project. Then run `/hooks` in Claude Code to confirm it is listed. To test a command without running it: `python3 -m guardrails check "git push --force"`.
 
 ## What it blocks
 
@@ -49,15 +62,16 @@ Allowed on purpose: `rm -rf node_modules`, `terraform plan`, `kubectl get`, `git
 
 This is a seatbelt, not a sandbox. It matches command text with regular expressions, so an agent that writes a script and then runs it, or builds a command from variables, can get past it. It does not stop a determined attacker. Use real permissions, scoped credentials and a sandbox for that.
 
-Tested locally with Python 3.14 on macOS; CI runs 3.10 and 3.13. The hook protocol (JSON on stdin, exit code 2 blocks) follows Claude Code's hooks documentation. I have not yet run it inside a live Claude Code session or on Cursor or Codex.
+Tested locally with Python 3.14 on macOS; CI runs 3.10 and 3.13. The hook follows Claude Code's hooks protocol (JSON on stdin, exit code 2 blocks). I have not yet run it inside a live Claude Code session, and I have not tested Cursor or Codex.
 
 ## Add a rule
 
-Add a `_r(...)` entry in `guardrails/rules.py`, then add block and allow cases in `tests/test_rules.py`. The test file fails if a rule has no block case.
+See [CONTRIBUTING.md](CONTRIBUTING.md). Add the rule in `guardrails/rules.py` and its cases in `tests/cases.json`. The tests fail if a rule has no block case.
 
 ```bash
 python3 -m venv .venv && . .venv/bin/activate
 pip install pytest && python -m pytest -q
+node tests/parity.mjs   # keeps the web demo in sync
 ```
 
 MIT licensed.

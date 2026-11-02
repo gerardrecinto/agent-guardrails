@@ -1,6 +1,6 @@
 [project]
 name = "agent-guardrails"
-version = "0.1.0"
+version = "0.2.0"
 description = "Tested Claude Code hook that blocks destructive shell commands and secret reads"
 requires-python = ">=3.10"
 license = { text = "MIT" }

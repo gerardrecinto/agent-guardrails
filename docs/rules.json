@@ -1,0 +1,71 @@
+{
+ "rules": [
+  {
+   "id": "rm-root-or-home",
+   "pattern": "\\brm\\s+(-\\w*[rf]\\w*\\s+)+(--no-preserve-root\\s+)?(/|~|\\$HOME|\\\"\\$HOME\\\"|/\\*|~/\\*)(\\s|$)",
+   "why": "Recursive delete of the root or home directory.",
+   "instead": "Delete a specific, named subdirectory and list it first with ls."
+  },
+  {
+   "id": "terraform-destroy",
+   "pattern": "\\bterraform\\s+(destroy|apply\\b.*-auto-approve)|\\btofu\\s+(destroy|apply\\b.*-auto-approve)",
+   "why": "Destroys or changes infrastructure without a human reading the plan.",
+   "instead": "Run terraform plan -out=tfplan, show the plan, and let a person run apply."
+  },
+  {
+   "id": "kubectl-delete-broad",
+   "pattern": "\\bkubectl\\s+delete\\s+(ns|namespace|--all\\b|.*\\s--all\\b|.*-A\\b|.*--all-namespaces)",
+   "why": "Deletes a namespace or every object of a kind.",
+   "instead": "Name one resource, run with --dry-run=server first, and check the current context."
+  },
+  {
+   "id": "kubectl-prod-context",
+   "pattern": "\\bkubectl\\b.*--context[= ]\\S*prod|\\bkubectl\\b.*-n\\s+\\S*prod",
+   "why": "Mutating command aimed at a production context or namespace.",
+   "instead": "Use get/describe for read-only checks. Ask a person to run changes in prod."
+  },
+  {
+   "id": "git-force-push",
+   "pattern": "\\bgit\\s+push\\b(?!.*--force-with-lease).*(\\s--force\\b|\\s-f\\b|\\s\\+\\S)",
+   "why": "Force push can overwrite other people's commits.",
+   "instead": "Use git push --force-with-lease on your own branch, never on main."
+  },
+  {
+   "id": "git-reset-hard",
+   "pattern": "\\bgit\\s+(reset\\s+--hard|clean\\s+-\\w*f)",
+   "why": "Throws away uncommitted work that cannot be recovered.",
+   "instead": "Run git status, then git stash or commit first."
+  },
+  {
+   "id": "sql-drop",
+   "pattern": "\\bdrop\\s+(database|schema|table)\\b|\\btruncate\\s+table\\b",
+   "why": "Irreversible data loss.",
+   "instead": "Take and verify a backup, then ask a person to run it."
+  },
+  {
+   "id": "pipe-to-shell",
+   "pattern": "\\b(curl|wget)\\b[^|;]*\\|\\s*(sudo\\s+)?(ba|z)?sh\\b",
+   "why": "Runs a remote script you have not read.",
+   "instead": "Download it, read it, then run it."
+  },
+  {
+   "id": "chmod-777",
+   "pattern": "\\bchmod\\s+(-\\w+\\s+)*0?777\\b",
+   "why": "Makes files writable by everyone.",
+   "instead": "Grant the narrowest mode that works, such as 644 or 755."
+  },
+  {
+   "id": "s3-bucket-wipe",
+   "pattern": "\\baws\\s+s3\\s+(rb\\b|rm\\b.*--recursive)|\\baws\\s+s3api\\s+delete-bucket",
+   "why": "Deletes a bucket or all of its objects.",
+   "instead": "List the contents, check versioning and replication, and ask a person to run it."
+  },
+  {
+   "id": "read-env-file",
+   "pattern": "\\b(cat|less|more|head|tail|grep|printenv|env)\\b.*(\\.env(?!\\.(example|sample|template))\\b|\\.aws/credentials|id_rsa|id_ed25519)",
+   "why": "Prints secrets into the model's context.",
+   "instead": "Check that the variable is set with [ -n \"$NAME\" ] instead of printing it."
+  }
+ ],
+ "secret_file": "(^|/)(\\.env(\\.\\w+)?|credentials|id_rsa|id_ed25519)$"
+}
