@@ -1,0 +1,12 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Read|Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "PYTHONPATH=$HOME/.agent-guardrails python3 -m guardrails.hook" }
+        ]
+      }
+    ]
+  }
+}
