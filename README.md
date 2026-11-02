@@ -58,6 +58,17 @@ The Read, Edit and Write tools are also blocked on `.env`, `.env.*`, `credential
 
 Allowed on purpose: `rm -rf node_modules`, `terraform plan`, `kubectl get`, `git push --force-with-lease`, `git reset --soft`.
 
+## How it compares
+
+| Option | What it is good at | Where agent-guardrails fits |
+| :--- | :--- | :--- |
+| Claude Code permission rules (allow, ask, deny) | Built in. Controls which tools and commands run without asking. | They say no. This hook also tells the agent the safer command, and ships with a test for every rule. Use both. |
+| Sandboxes and containers | The real boundary. Limits what a command can touch even if it gets through. | agent-guardrails is only a seatbelt on top. If you can sandbox, do. |
+| LLM guardrail frameworks (Guardrails AI, NeMo Guardrails, LlamaFirewall) | Check model inputs and outputs, prompt injection and unsafe text. | Different job. This only looks at shell commands and secret files. |
+| Joltrin | Checks that earlier steps really happened before a risky action. | Use agent-guardrails for "never run this", Joltrin for "only after these steps". |
+
+Other projects are described from their public documentation, not from tests run here. They are more mature in their own areas. This one is small, installs in 30 seconds, and has no dependencies.
+
 ## Limits
 
 This is a seatbelt, not a sandbox. It matches command text with regular expressions, so an agent that writes a script and then runs it, or builds a command from variables, can get past it. It does not stop a determined attacker. Use real permissions, scoped credentials and a sandbox for that.

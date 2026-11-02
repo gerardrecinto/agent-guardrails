@@ -78,6 +78,15 @@ python3 -m guardrails install                     # adds the hook to ~/.claude/s
 <div class="wrap"><table id="rules"><thead><tr><th>Rule</th><th>Why</th><th>Instead</th></tr></thead><tbody></tbody></table></div>
 <p class="note">Allowed on purpose: <code>rm -rf node_modules</code>, <code>terraform plan</code>, <code>kubectl get</code>, <code>git push --force-with-lease</code>, <code>cat .env.example</code>.</p>
 
+<h2>How it compares</h2>
+<div class="wrap"><table><thead><tr><th>Option</th><th>Good at</th><th>agent-guardrails</th></tr></thead><tbody>
+<tr><td>Claude Code permission rules</td><td>Built in. Decide which tools and commands run without asking.</td><td>They say no. This also tells the agent the safer command, with a test per rule. Use both.</td></tr>
+<tr><td>Sandboxes and containers</td><td>The real boundary on what a command can touch.</td><td>Only a seatbelt on top. Sandbox if you can.</td></tr>
+<tr><td>Guardrails AI, NeMo Guardrails, LlamaFirewall</td><td>Check model inputs and outputs.</td><td>Different job. This only looks at shell commands and secret files.</td></tr>
+<tr><td><a href="https://joltrinhq.com">Joltrin</a></td><td>Checks that earlier steps happened before a risky action.</td><td>This says "never run this". Joltrin says "only after these steps".</td></tr>
+</tbody></table></div>
+<p class="note">Described from their public documentation, not tests run here. They are more mature in their own areas. This one is small, has no dependencies and installs in 30 seconds.</p>
+
 <h2>What it does not do</h2>
 <p>It is a seatbelt, not a sandbox. It reads command text, so an agent that writes a script and runs that, or builds a command from variables, can get past it. Use real permissions and scoped credentials for hard limits. I have not yet run it inside a live Claude Code session beyond the hook protocol, and I have not tested Cursor or Codex.</p>
 
