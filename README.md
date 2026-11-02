@@ -49,7 +49,7 @@ Allowed on purpose: `rm -rf node_modules`, `terraform plan`, `kubectl get`, `git
 
 This is a seatbelt, not a sandbox. It matches command text with regular expressions, so an agent that writes a script and then runs it, or builds a command from variables, can get past it. It does not stop a determined attacker. Use real permissions, scoped credentials and a sandbox for that.
 
-Tested with Python 3.14 on macOS. The hook protocol (JSON on stdin, exit code 2 blocks) follows Claude Code's hooks documentation. I have not yet run it inside a live Claude Code session or on Cursor or Codex.
+Tested locally with Python 3.14 on macOS; CI runs 3.10 and 3.13. The hook protocol (JSON on stdin, exit code 2 blocks) follows Claude Code's hooks documentation. I have not yet run it inside a live Claude Code session or on Cursor or Codex.
 
 ## Add a rule
 
