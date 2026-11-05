@@ -1,0 +1,13 @@
+{
+  "workflows": {
+    "infra": {
+      "steps": [
+        { "id": "plan", "establishes": ["planned"] },
+        { "id": "apply", "requires": ["planned"], "establishes": ["applied"] }
+      ],
+      "safety": [
+        { "name": "no-apply-without-plan", "forbidden": "applied", "requires": "planned" }
+      ]
+    }
+  }
+}

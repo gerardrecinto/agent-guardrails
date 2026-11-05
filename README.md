@@ -58,6 +58,26 @@ The Read, Edit and Write tools are also blocked on `.env`, `.env.*`, `credential
 
 Allowed on purpose: `rm -rf node_modules`, `terraform plan`, `kubectl get`, `git push --force-with-lease`, `git reset --soft`.
 
+## Optional: only after these steps (with Joltrin)
+
+The rules above say "never run this". Some commands are fine, but only after an earlier step, such as `terraform apply` after `terraform plan`. [Joltrin](https://joltrinhq.com) tracks which steps have happened in a session, and this hook can ask it.
+
+You need a Joltrin build that has the `gate` command (it is in Joltrin's `master`, not yet in a release; build it with `go install github.com/sharedcode/joltrin/v5/cmd/sop-mcp-server@master`). Copy `examples/order.json` and `examples/runbooks.json` next to each other, then:
+
+```bash
+export AGENT_GUARDRAILS_ORDER=$PWD/examples/order.json
+echo '{"tool_name":"Bash","session_id":"demo","tool_input":{"command":"terraform apply tfplan"}}' | python3 -m guardrails.hook; echo "exit: $?"
+```
+
+The first call exits 2 and says `Run plan first, then try this again.` After a `terraform plan` call in the same session, the same `apply` exits 0.
+
+What to know before relying on it:
+- It is off unless `AGENT_GUARDRAILS_ORDER` is set. Nothing else changes.
+- A step is recorded when the hook allows it, before the command runs. If `terraform plan` then fails, Joltrin still counts it as done.
+- A command that matches a step but cannot be checked (Joltrin missing, bad file) is blocked, not allowed, and the message says why.
+- The ordinary rules run first, so `terraform apply -auto-approve` is still blocked outright.
+- Each session has its own steps. The session id comes from Claude Code.
+
 ## How it compares
 
 | Option | What it is good at | Where agent-guardrails fits |
@@ -65,7 +85,7 @@ Allowed on purpose: `rm -rf node_modules`, `terraform plan`, `kubectl get`, `git
 | Claude Code permission rules (allow, ask, deny) | Built in. Controls which tools and commands run without asking. | They say no. This hook also tells the agent the safer command, and ships with a test for every rule. Use both. |
 | Sandboxes and containers | The real boundary. Limits what a command can touch even if it gets through. | agent-guardrails is only a seatbelt on top. If you can sandbox, do. |
 | LLM guardrail frameworks (Guardrails AI, NeMo Guardrails, LlamaFirewall) | Check model inputs and outputs, prompt injection and unsafe text. | Different job. This only looks at shell commands and secret files. |
-| Joltrin | Checks that earlier steps really happened before a risky action. | Use agent-guardrails for "never run this", Joltrin for "only after these steps". |
+| Joltrin | Checks that earlier steps really happened before a risky action. | Use agent-guardrails for "never run this", Joltrin for "only after these steps". The hook can call Joltrin for the second one, see the section above. |
 
 Other projects are described from their public documentation, not from tests run here. They are more mature in their own areas. This one is small, installs in 30 seconds, and has no dependencies.
 
