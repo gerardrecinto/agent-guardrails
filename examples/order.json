@@ -1,0 +1,8 @@
+{
+  "runbooks": "runbooks.json",
+  "workflow": "infra",
+  "steps": [
+    { "match": "\\bterraform\\s+plan\\b", "step": "plan" },
+    { "match": "\\bterraform\\s+apply\\b", "step": "apply" }
+  ]
+}

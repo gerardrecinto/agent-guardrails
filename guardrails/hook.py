@@ -3,6 +3,7 @@ Exit 0 allows the call. Exit 2 blocks it and sends stderr back to the agent."""
 import json
 import sys
 
+from guardrails.order import check_order
 from guardrails.rules import check_command, check_file_path
 
 
@@ -10,7 +11,8 @@ def decide(event: dict):
     tool = event.get("tool_name", "")
     args = event.get("tool_input") or {}
     if tool == "Bash":
-        return check_command(args.get("command", ""))
+        command = args.get("command", "")
+        return check_command(command) or check_order(command, event.get("session_id", ""))
     if tool in ("Read", "Edit", "Write"):
         return check_file_path(args.get("file_path", ""))
     return None
